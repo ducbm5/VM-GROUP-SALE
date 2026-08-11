@@ -1,6 +1,6 @@
 import React from 'react';
 import { GroupSummary, SearchStats } from '../types';
-import { BarChart3, Users, Award, ShieldCheck, Flag, User } from 'lucide-react';
+import { BarChart3, Users, Award, ShieldCheck, Flag, User, Banknote } from 'lucide-react';
 
 interface StatsPanelProps {
   stats: SearchStats;
@@ -19,6 +19,7 @@ export const StatsPanel: React.FC<StatsPanelProps> = ({ stats, groups, query }) 
   const leaderName = group?.nameLead || 'Chưa cập nhật';
   const raceName = group?.race || 'Chưa cập nhật giải';
   const totalMembers = group?.memberCount || stats.totalMembersFound || 0;
+  const totalAmount = group?.totalTxnAmount || stats.totalAmount || 0;
 
   // Calculate Distance breakdown entries sorted by distance number
   const distanceEntries = Object.entries(stats.distances).sort((a, b) => {
@@ -60,14 +61,14 @@ export const StatsPanel: React.FC<StatsPanelProps> = ({ stats, groups, query }) 
             </span>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
             {/* 1. Giải chạy */}
             <div className="border border-[#1A1A1A] bg-white p-4 shadow-[2px_2px_0px_0px_#1A1A1A]">
               <div className="font-mono-tech text-[11px] uppercase text-neutral-500 font-bold mb-1 flex items-center gap-1.5">
                 <Flag className="w-3.5 h-3.5 text-[#CC0000]" />
                 <span>GIẢI CHẠY</span>
               </div>
-              <div className="font-serif-title text-xl font-bold text-[#1A1A1A]">
+              <div className="font-serif-title text-lg font-bold text-[#1A1A1A]">
                 {raceName}
               </div>
             </div>
@@ -78,7 +79,7 @@ export const StatsPanel: React.FC<StatsPanelProps> = ({ stats, groups, query }) 
                 <Award className="w-3.5 h-3.5 text-[#1A1A1A]" />
                 <span>TÊN NHÓM</span>
               </div>
-              <div className="font-serif-title text-xl font-bold text-[#1A1A1A]">
+              <div className="font-serif-title text-lg font-bold text-[#1A1A1A]">
                 {groupName} <span className="text-xs font-mono-tech text-neutral-500 font-normal">(ID: {idGroup})</span>
               </div>
             </div>
@@ -87,9 +88,9 @@ export const StatsPanel: React.FC<StatsPanelProps> = ({ stats, groups, query }) 
             <div className="border border-[#1A1A1A] bg-white p-4 shadow-[2px_2px_0px_0px_#1A1A1A]">
               <div className="font-mono-tech text-[11px] uppercase text-neutral-500 font-bold mb-1 flex items-center gap-1.5">
                 <User className="w-3.5 h-3.5 text-[#1A1A1A]" />
-                <span>TÊN TRƯỞNG NHÓM</span>
+                <span>TRƯỞNG NHÓM</span>
               </div>
-              <div className="font-serif-title text-xl font-bold text-[#1A1A1A]">
+              <div className="font-serif-title text-lg font-bold text-[#1A1A1A]">
                 {leaderName}
               </div>
             </div>
@@ -98,17 +99,22 @@ export const StatsPanel: React.FC<StatsPanelProps> = ({ stats, groups, query }) 
             <div className="border border-[#1A1A1A] bg-white p-4 shadow-[2px_2px_0px_0px_#1A1A1A]">
               <div className="font-mono-tech text-[11px] uppercase text-neutral-500 font-bold mb-1 flex items-center gap-1.5">
                 <Users className="w-3.5 h-3.5 text-[#CC0000]" />
-                <span>TỔNG SỐ THÀNH VIÊN</span>
+                <span>SỐ THÀNH VIÊN</span>
               </div>
-              <div className="font-serif-title text-3xl font-black text-[#CC0000]">
-                {totalMembers} <span className="text-sm font-mono-tech text-[#1A1A1A] font-bold">VĐV</span>
+              <div className="font-serif-title text-2xl font-black text-[#CC0000]">
+                {totalMembers} <span className="text-xs font-mono-tech text-[#1A1A1A] font-bold">VĐV</span>
               </div>
-              {stats.totalAmount > 0 && (
-                <div className="text-[11px] font-mono-tech text-neutral-600 border-t border-neutral-200 pt-1.5 mt-2 flex justify-between">
-                  <span>Tổng phí đăng ký:</span>
-                  <span className="font-bold text-[#1A1A1A]">{formatVND(stats.totalAmount)}</span>
-                </div>
-              )}
+            </div>
+
+            {/* 5. Tổng số tiền */}
+            <div className="border border-[#1A1A1A] bg-white p-4 shadow-[2px_2px_0px_0px_#1A1A1A]">
+              <div className="font-mono-tech text-[11px] uppercase text-neutral-500 font-bold mb-1 flex items-center gap-1.5">
+                <Banknote className="w-3.5 h-3.5 text-emerald-700" />
+                <span>TỔNG SỐ TIỀN</span>
+              </div>
+              <div className="font-serif-title text-xl font-black text-emerald-800">
+                {formatVND(totalAmount)}
+              </div>
             </div>
           </div>
 
