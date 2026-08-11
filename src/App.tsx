@@ -4,11 +4,17 @@ import { SearchSection } from './components/SearchSection';
 import { StatsPanel } from './components/StatsPanel';
 import { MemberListingTable } from './components/MemberListingTable';
 import { Footer } from './components/Footer';
+import { PasswordGate } from './components/PasswordGate';
 import { MetaResponse, SearchResponse, RunnerMember } from './types';
+import { clientGetMeta, clientSearch } from './lib/tsvParser';
 import { ShieldAlert, Search, RefreshCw, AlertTriangle, ArrowRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 export default function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
+    return sessionStorage.getItem('page_access_authenticated') === 'true';
+  });
+
   const [meta, setMeta] = useState<MetaResponse | null>(null);
   const [loadingMeta, setLoadingMeta] = useState<boolean>(true);
   
@@ -17,17 +23,29 @@ export default function App() {
   const [searching, setSearching] = useState<boolean>(false);
   const [searchResponse, setSearchResponse] = useState<SearchResponse | null>(null);
 
-  // Fetch Meta Statistics
+  // Fetch Meta Statistics with automatic static host fallback
   const fetchMeta = useCallback(async () => {
     setLoadingMeta(true);
     try {
       const res = await fetch('/api/meta');
       if (res.ok) {
         const data = await res.json();
-        setMeta(data);
+        if (data && data.totalRunners !== undefined) {
+          setMeta(data);
+          return;
+        }
       }
+      // Fallback for Vercel static hosting or offline API
+      const fallbackData = await clientGetMeta();
+      setMeta(fallbackData);
     } catch (err) {
-      console.error('Error fetching meta:', err);
+      console.warn('Backend API /api/meta not reachable, using client TSV parser:', err);
+      try {
+        const fallbackData = await clientGetMeta();
+        setMeta(fallbackData);
+      } catch (fallbackErr) {
+        console.error('Client TSV fetch failed:', fallbackErr);
+      }
     } finally {
       setLoadingMeta(false);
     }
@@ -37,7 +55,7 @@ export default function App() {
     fetchMeta();
   }, [fetchMeta]);
 
-  // Handle Search Submission
+  // Handle Search Submission with automatic static host fallback
   const handleSearch = async (query: string, exact: boolean = false) => {
     if (!query.trim()) return;
 
@@ -48,25 +66,32 @@ export default function App() {
     try {
       const res = await fetch(`/api/search?q=${encodeURIComponent(query)}&exact=${exact}`);
       if (res.ok) {
-        const data: SearchResponse = await res.json();
-        setSearchResponse(data);
-      } else {
+        const contentType = res.headers.get('content-type') || '';
+        if (contentType.includes('application/json')) {
+          const data: SearchResponse = await res.json();
+          if (data && data.status) {
+            setSearchResponse(data);
+            return;
+          }
+        }
+      }
+      // Fallback for Vercel static hosting or offline API
+      const clientResult = await clientSearch(query, exact);
+      setSearchResponse(clientResult);
+    } catch (err: any) {
+      console.warn('Backend API /api/search not reachable, using client TSV search:', err);
+      try {
+        const clientResult = await clientSearch(query, exact);
+        setSearchResponse(clientResult);
+      } catch (clientErr: any) {
         setSearchResponse({
           status: 'error',
           query,
           groups: [],
           stats: null,
-          message: 'Lỗi khi kết nối với máy chủ tra cứu. Vui lòng thử lại.'
+          message: clientErr.message || 'Lỗi mạng khi tải dữ liệu tra cứu.'
         });
       }
-    } catch (err: any) {
-      setSearchResponse({
-        status: 'error',
-        query,
-        groups: [],
-        stats: null,
-        message: err.message || 'Lỗi mạng khi tải dữ liệu tra cứu.'
-      });
     } finally {
       setSearching(false);
     }
@@ -84,6 +109,15 @@ export default function App() {
     return searchResponse.groups.flatMap(g => g.members);
   }, [searchResponse]);
 
+  const handleLockPage = () => {
+    sessionStorage.removeItem('page_access_authenticated');
+    setIsAuthenticated(false);
+  };
+
+  if (!isAuthenticated) {
+    return <PasswordGate onSuccess={() => setIsAuthenticated(true)} />;
+  }
+
   return (
     <div className="min-h-screen bg-[#F4F1EA] text-[#1A1A1A] flex flex-col font-sans selection:bg-[#1A1A1A] selection:text-[#F4F1EA]">
       
@@ -92,6 +126,7 @@ export default function App() {
         meta={meta} 
         loadingMeta={loadingMeta} 
         onRefreshMeta={fetchMeta} 
+        onLockPage={handleLockPage}
       />
 
       {/* Search Bar Component - Always displayed at top */}

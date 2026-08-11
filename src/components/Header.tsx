@@ -1,14 +1,15 @@
 import React from 'react';
-import { Database, RefreshCw } from 'lucide-react';
+import { Database, RefreshCw, Lock } from 'lucide-react';
 import { MetaResponse } from '../types';
 
 interface HeaderProps {
   meta: MetaResponse | null;
   loadingMeta: boolean;
   onRefreshMeta: () => void;
+  onLockPage?: () => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ meta, loadingMeta, onRefreshMeta }) => {
+export const Header: React.FC<HeaderProps> = ({ meta, loadingMeta, onRefreshMeta, onLockPage }) => {
   return (
     <header className="border-b-2 border-[#1A1A1A] bg-[#F4F1EA]">
       {/* Main Editorial Masthead */}
@@ -49,10 +50,7 @@ export const Header: React.FC<HeaderProps> = ({ meta, loadingMeta, onRefreshMeta
                 {loadingMeta ? 'Loading TSV...' : `${(meta?.totalRunners || 0).toLocaleString('vi-VN')} VĐV`}
               </span>
             </div>
-            <div className="flex items-center justify-between pt-0.5">
-              <span className="text-[10px] text-neutral-500 uppercase">
-                {meta?.lastUpdated ? `Cập nhật: ${new Date(meta.lastUpdated).toLocaleTimeString('vi-VN')}` : 'Cập nhật tự động'}
-              </span>
+            <div className="flex items-center justify-between pt-0.5 border-t border-[#1A1A1A]/20">
               <button 
                 onClick={onRefreshMeta}
                 disabled={loadingMeta}
@@ -62,6 +60,17 @@ export const Header: React.FC<HeaderProps> = ({ meta, loadingMeta, onRefreshMeta
                 <RefreshCw className={`w-3 h-3 ${loadingMeta ? 'animate-spin' : ''}`} />
                 Làm mới
               </button>
+
+              {onLockPage && (
+                <button
+                  onClick={onLockPage}
+                  className="hover:text-[#CC0000] hover:underline flex items-center gap-1 text-[10px] font-bold uppercase text-neutral-600"
+                  title="Khóa trang truy cập"
+                >
+                  <Lock className="w-3 h-3 text-[#CC0000]" />
+                  Khóa trang
+                </button>
+              )}
             </div>
           </div>
         </div>

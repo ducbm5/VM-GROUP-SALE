@@ -165,6 +165,16 @@ async function startServer() {
 
   app.use(express.json());
 
+  // API Endpoint: Verify Page Access Password
+  app.post("/api/verify-password", (req, res) => {
+    const { password } = req.body || {};
+    if (password === "898989") {
+      res.json({ success: true, message: "Mật khẩu chính xác." });
+    } else {
+      res.status(401).json({ success: false, message: "Mật khẩu không chính xác." });
+    }
+  });
+
   // API Endpoint: Meta Stats (High level overview without revealing personal data)
   app.get("/api/meta", async (_req, res) => {
     try {
