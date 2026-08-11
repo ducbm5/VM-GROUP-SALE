@@ -1,0 +1,6 @@
+{
+  "name": "Thống Kê Đăng Ký Nhóm Chạy",
+  "description": "Tra cứu và thống kê dữ liệu đăng ký nhóm giải chạy với phong cách Editorial Neo-Brutalism & Financial Times.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

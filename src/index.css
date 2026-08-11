@@ -1,0 +1,48 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    background-color: #F4F1EA;
+    color: #1A1A1A;
+  }
+}
+
+.font-serif-title {
+  font-family: 'Merriweather', Georgia, serif;
+}
+
+.font-mono-tech {
+  font-family: 'JetBrains Mono', Courier, monospace;
+}
+
+/* Custom 1px grid hairline borders */
+.border-ink {
+  border-color: #1A1A1A;
+}
+
+.border-ink-subtle {
+  border-color: rgba(26, 26, 26, 0.2);
+}
+
+.bg-newsprint {
+  background-color: #F4F1EA;
+}
+
+.bg-ink {
+  background-color: #1A1A1A;
+}
+
+.text-ink {
+  color: #1A1A1A;
+}
+
+/* Financial Times signature accent tint if needed for visual hierarchy */
+.bg-ft-accent {
+  background-color: #CC0000;
+}
+
+.text-ft-accent {
+  color: #CC0000;
+}
+
