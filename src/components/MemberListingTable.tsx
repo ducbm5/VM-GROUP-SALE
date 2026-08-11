@@ -1,8 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { RunnerMember } from '../types';
 import { 
-  Download, Printer, Filter, ArrowUpDown, ChevronLeft, ChevronRight, 
-  Eye, EyeOff, Search, FileSpreadsheet, Copy, Check 
+  Download, Filter, ArrowUpDown, ChevronLeft, ChevronRight, 
+  Search, FileSpreadsheet 
 } from 'lucide-react';
 
 interface MemberListingTableProps {
@@ -22,7 +22,6 @@ export const MemberListingTable: React.FC<MemberListingTableProps> = ({
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [pageSize, setPageSize] = useState<number>(20);
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const [copied, setCopied] = useState<boolean>(false);
 
   const formatVND = (amount: number) => {
     return new Intl.NumberFormat('vi-VN').format(amount) + ' ₫';
@@ -126,22 +125,6 @@ export const MemberListingTable: React.FC<MemberListingTableProps> = ({
     document.body.removeChild(link);
   };
 
-  // Print view
-  const handlePrint = () => {
-    window.print();
-  };
-
-  // Copy data
-  const handleCopy = () => {
-    const lines = filteredMembers.map((m, i) => 
-      `${i + 1}\t${m.userId || ''}\t${m.name}\t${m.idPassport}\t${m.phNo}\t${m.distance}\t${m.gender}\t${m.txnAmount}\t${m.dateCreate}`
-    );
-    const text = ["STT\tUSER_ID\tNAME\tID_PASSPORT\tPH_NO\tDISTANCE\tGENDER\tTXNAMOUNT\tDATE_CREATE", ...lines].join("\n");
-    navigator.clipboard.writeText(text);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
   return (
     <section className="bg-[#F4F1EA] py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
@@ -149,7 +132,7 @@ export const MemberListingTable: React.FC<MemberListingTableProps> = ({
         {/* Table Header Controls */}
         <div className="border-2 border-[#1A1A1A] bg-[#F4F1EA] shadow-[4px_4px_0px_0px_#1A1A1A] p-5 mb-6">
           
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between border-b-2 border-[#1A1A1A] pb-4 mb-4 gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b-2 border-[#1A1A1A] pb-4 mb-4 gap-4">
             <div>
               <div className="font-mono-tech text-xs uppercase tracking-widest text-[#CC0000] font-bold flex items-center gap-2">
                 <FileSpreadsheet className="w-4 h-4 text-[#CC0000]" />
@@ -160,40 +143,24 @@ export const MemberListingTable: React.FC<MemberListingTableProps> = ({
               </h3>
             </div>
 
-            {/* Action Buttons */}
-            <div className="flex flex-wrap items-center gap-2 font-mono-tech text-xs">
-              <button
-                onClick={handleCopy}
-                className="px-3 py-2 bg-white text-[#1A1A1A] border border-[#1A1A1A] hover:bg-neutral-200 font-bold uppercase flex items-center gap-1.5"
-              >
-                {copied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
-                <span>{copied ? 'ĐÃ COPY' : 'COPY TSV'}</span>
-              </button>
-
+            {/* Action Button - Export Excel / CSV only */}
+            <div className="flex items-center gap-2 font-mono-tech text-xs self-start sm:self-auto">
               <button
                 onClick={handleExportCSV}
-                className="px-3 py-2 bg-[#1A1A1A] text-[#F4F1EA] hover:bg-neutral-800 font-bold uppercase flex items-center gap-1.5"
+                className="px-4 py-2 bg-[#1A1A1A] text-[#F4F1EA] hover:bg-neutral-800 font-bold uppercase flex items-center gap-2 shadow-[2px_2px_0px_0px_#CC0000] transition-all"
               >
-                <Download className="w-3.5 h-3.5 text-emerald-400" />
+                <Download className="w-4 h-4 text-emerald-400" />
                 <span>XUẤT EXCEL / CSV</span>
-              </button>
-
-              <button
-                onClick={handlePrint}
-                className="px-3 py-2 bg-white text-[#1A1A1A] border border-[#1A1A1A] hover:bg-neutral-200 font-bold uppercase flex items-center gap-1.5 hidden sm:flex"
-              >
-                <Printer className="w-3.5 h-3.5" />
-                <span>IN BÁO CÁO</span>
               </button>
             </div>
           </div>
 
-          {/* Filters Bar */}
+          {/* Filters Bar - Fixed line wrapping & padding */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 font-mono-tech text-xs">
             
             {/* Filter Text */}
-            <div className="relative flex items-center bg-white border border-[#1A1A1A]">
-              <Search className="w-3.5 h-3.5 text-neutral-500 ml-2.5" />
+            <div className="relative flex items-center bg-white border border-[#1A1A1A] px-2.5 py-1.5 min-w-0">
+              <Search className="w-4 h-4 text-neutral-500 mr-2 shrink-0" />
               <input
                 type="text"
                 value={filterText}
@@ -202,21 +169,21 @@ export const MemberListingTable: React.FC<MemberListingTableProps> = ({
                   setCurrentPage(1);
                 }}
                 placeholder="Lọc tên VĐV, CCCD, SĐT..."
-                className="w-full px-2.5 py-2 font-mono-tech text-xs bg-transparent outline-none border-none focus:ring-0"
+                className="w-full font-mono-tech text-xs bg-transparent outline-none border-none focus:ring-0 min-w-0"
               />
             </div>
 
             {/* Filter Distance */}
-            <div className="flex items-center gap-2 bg-white border border-[#1A1A1A] px-2 py-1">
-              <Filter className="w-3.5 h-3.5 text-neutral-500" />
-              <span className="text-[10px] text-neutral-500 uppercase">CỰ LY:</span>
+            <div className="flex items-center gap-2 bg-white border border-[#1A1A1A] px-3 py-1.5 min-w-0">
+              <Filter className="w-3.5 h-3.5 text-neutral-500 shrink-0" />
+              <span className="text-[11px] font-bold text-neutral-600 uppercase whitespace-nowrap shrink-0">CỰ LY:</span>
               <select
                 value={filterDistance}
                 onChange={(e) => {
                   setFilterDistance(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="w-full bg-transparent font-bold outline-none cursor-pointer text-xs"
+                className="w-full bg-transparent font-bold outline-none cursor-pointer text-xs min-w-0 truncate"
               >
                 <option value="ALL">Tất cả cự ly ({members.length})</option>
                 {distinctDistances.map(d => (
@@ -226,15 +193,15 @@ export const MemberListingTable: React.FC<MemberListingTableProps> = ({
             </div>
 
             {/* Filter Gender */}
-            <div className="flex items-center gap-2 bg-white border border-[#1A1A1A] px-2 py-1">
-              <span className="text-[10px] text-neutral-500 uppercase ml-1">GIỚI TÍNH:</span>
+            <div className="flex items-center gap-2 bg-white border border-[#1A1A1A] px-3 py-1.5 min-w-0">
+              <span className="text-[11px] font-bold text-neutral-600 uppercase whitespace-nowrap shrink-0">GIỚI TÍNH:</span>
               <select
                 value={filterGender}
                 onChange={(e) => {
                   setFilterGender(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="w-full bg-transparent font-bold outline-none cursor-pointer text-xs"
+                className="w-full bg-transparent font-bold outline-none cursor-pointer text-xs min-w-0 truncate"
               >
                 <option value="ALL">Tất cả giới tính</option>
                 <option value="M">Nam (Male)</option>
@@ -243,20 +210,20 @@ export const MemberListingTable: React.FC<MemberListingTableProps> = ({
             </div>
 
             {/* Page Size */}
-            <div className="flex items-center justify-between bg-white border border-[#1A1A1A] px-2 py-1">
-              <span className="text-[10px] text-neutral-500 uppercase">HIỂN THỊ / TRANG:</span>
+            <div className="flex items-center justify-between gap-2 bg-white border border-[#1A1A1A] px-3 py-1.5 min-w-0">
+              <span className="text-[11px] font-bold text-neutral-600 uppercase whitespace-nowrap shrink-0">HIỂN THỊ:</span>
               <select
                 value={pageSize}
                 onChange={(e) => {
                   setPageSize(Number(e.target.value));
                   setCurrentPage(1);
                 }}
-                className="bg-transparent font-bold outline-none cursor-pointer text-xs"
+                className="bg-transparent font-bold outline-none cursor-pointer text-xs shrink-0"
               >
-                <option value={15}>15 dòng</option>
-                <option value={20}>20 dòng</option>
-                <option value={50}>50 dòng</option>
-                <option value={100}>100 dòng</option>
+                <option value={15}>15 dòng / trang</option>
+                <option value={20}>20 dòng / trang</option>
+                <option value={50}>50 dòng / trang</option>
+                <option value={100}>100 dòng / trang</option>
               </select>
             </div>
 
