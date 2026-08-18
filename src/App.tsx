@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Header } from './components/Header';
 import { SearchSection } from './components/SearchSection';
-import { StatsPanel } from './components/StatsPanel';
+import { GroupSettingsBox } from './components/GroupSettingsBox';
 import { MemberListingTable } from './components/MemberListingTable';
 import { Footer } from './components/Footer';
 import { PasswordGate } from './components/PasswordGate';
@@ -197,21 +197,19 @@ export default function App() {
 
             ) : (
 
-              /* SUCCESS STATE: Display Both Bảng Thống Kê & Bảng Listing Thành Viên */
+              /* SUCCESS STATE: Display Group Settings Box & Member Listing Table */
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.4 }}
                 key="results"
               >
-                {/* 1. BẢNG THỐNG KÊ (STATISTICS PANEL) */}
-                {searchResponse.stats && (
-                  <StatsPanel
-                    stats={searchResponse.stats}
-                    groups={searchResponse.groups}
-                    query={currentQuery}
-                  />
-                )}
+                {/* 1. BOX CÀI ĐẶT NHÓM (GROUP SETTINGS BOX - CHỨA ĐẦY ĐỦ CẤU HÌNH & PHÂN BỔ CỰ LY) */}
+                <GroupSettingsBox
+                  setting={searchResponse.groupSetting}
+                  query={currentQuery}
+                  stats={searchResponse.stats}
+                />
 
                 {/* 2. BẢNG LISTING THÀNH VIÊN (MEMBER LISTING TABLE) */}
                 <MemberListingTable

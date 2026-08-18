@@ -1,6 +1,6 @@
 import React from 'react';
 import { GroupSummary, SearchStats } from '../types';
-import { BarChart3, Users, Award, ShieldCheck, Flag, User, Banknote } from 'lucide-react';
+import { Users, Award, ShieldCheck, Flag, User, Banknote } from 'lucide-react';
 
 interface StatsPanelProps {
   stats: SearchStats;
@@ -20,13 +20,6 @@ export const StatsPanel: React.FC<StatsPanelProps> = ({ stats, groups, query }) 
   const raceName = group?.race || 'Chưa cập nhật giải';
   const totalMembers = group?.memberCount || stats.totalMembersFound || 0;
   const totalAmount = group?.totalTxnAmount || stats.totalAmount || 0;
-
-  // Calculate Distance breakdown entries sorted by distance number
-  const distanceEntries = Object.entries(stats.distances).sort((a, b) => {
-    const numA = parseInt(a[0]) || 0;
-    const numB = parseInt(b[0]) || 0;
-    return numA - numB;
-  });
 
   return (
     <section className="bg-[#F4F1EA] border-b-2 border-[#1A1A1A] py-8 px-4 sm:px-6 lg:px-8">
@@ -61,7 +54,7 @@ export const StatsPanel: React.FC<StatsPanelProps> = ({ stats, groups, query }) 
             </span>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
             {/* 1. Giải chạy */}
             <div className="border border-[#1A1A1A] bg-white p-4 shadow-[2px_2px_0px_0px_#1A1A1A]">
               <div className="font-mono-tech text-[11px] uppercase text-neutral-500 font-bold mb-1 flex items-center gap-1.5">
@@ -115,47 +108,6 @@ export const StatsPanel: React.FC<StatsPanelProps> = ({ stats, groups, query }) 
               <div className="font-serif-title text-xl font-black text-emerald-800">
                 {formatVND(totalAmount)}
               </div>
-            </div>
-          </div>
-
-          {/* 5. Phân bổ theo cự ly */}
-          <div className="border border-[#1A1A1A] bg-white p-5 shadow-[3px_3px_0px_0px_#1A1A1A]">
-            <div className="flex items-center justify-between border-b border-[#1A1A1A] pb-3 mb-4">
-              <div className="font-mono-tech text-xs uppercase font-bold text-[#1A1A1A] flex items-center gap-2">
-                <BarChart3 className="w-4 h-4 text-[#CC0000]" />
-                <span>PHÂN BỔ THEO CỰ LY CHẠY</span>
-              </div>
-              <span className="font-mono-tech text-[10px] text-neutral-500 uppercase">TỔNG {totalMembers} VĐV</span>
-            </div>
-
-            <div className="space-y-4">
-              {distanceEntries.length === 0 ? (
-                <p className="font-mono-tech text-xs text-neutral-500 py-2">Chưa có dữ liệu phân bổ cự ly.</p>
-              ) : (
-                distanceEntries.map(([dist, count]) => {
-                  const runnerCount = Number(count) || 0;
-                  const total = Number(totalMembers) || 1;
-                  const percent = Math.round((runnerCount / total) * 100);
-                  return (
-                    <div key={dist} className="space-y-1.5 font-mono-tech text-xs">
-                      <div className="flex justify-between items-center text-[#1A1A1A]">
-                        <span className="font-bold text-sm">
-                          CỰ LY {dist.toUpperCase() === 'KHÁC' ? 'KHÁC' : `${dist} KM`}
-                        </span>
-                        <span className="bg-[#1A1A1A] text-[#F4F1EA] px-2.5 py-0.5 font-bold">
-                          {count} VĐV ({percent}%)
-                        </span>
-                      </div>
-                      <div className="w-full h-4 bg-neutral-100 border border-[#1A1A1A] p-0.5">
-                        <div 
-                          className="h-full bg-[#CC0000] transition-all duration-500" 
-                          style={{ width: `${percent}%` }}
-                        ></div>
-                      </div>
-                    </div>
-                  );
-                })
-              )}
             </div>
           </div>
 
