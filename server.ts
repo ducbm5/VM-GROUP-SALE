@@ -2,7 +2,7 @@ import express from "express";
 import path from "path";
 import { createServer as createViteServer } from "vite";
 
-const TSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSdKN4erdH4gZw4QT6q3AjYKZDPdyrXeI0JMQ3zCDafd1M837zHUu31BsmOJNovrsk7PpZ55AmU1NdB/pub?gid=0&single=true&output=tsv";
+const TSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSan91I-1TtCgd1EmdluNJz1WW8R7wCnCXwKz8BA1SaiOCouWBR4_b6rm5YrywWmAr45nPAMHMs4Bd1/pub?gid=0&single=true&output=tsv";
 const GROUP_SETTINGS_TSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRHymZVxu0vJMxzbqe0SuqGa2yWPZb6yPRNveitDRPbHja4WduOdwK-G0q9WMPxgaeqVtUpcfj5DRYi/pub?gid=0&single=true&output=tsv";
 
 interface RunnerMember {
