@@ -62,13 +62,13 @@ export const GroupSettingsBox: React.FC<GroupSettingsBoxProps> = ({ setting, que
               </p>
             </div>
 
-            {/* Phân bổ theo cự ly chạy nếu có dữ liệu từ VĐV */}
+            {/* Số lượng đã đăng ký theo cự ly nếu có dữ liệu từ VĐV */}
             {distanceEntries.length > 0 && (
               <div className="border border-[#1A1A1A] bg-white p-5 shadow-[3px_3px_0px_0px_#1A1A1A]">
                 <div className="flex items-center justify-between border-b border-[#1A1A1A] pb-3 mb-4">
                   <div className="font-mono-tech text-xs uppercase font-bold text-[#1A1A1A] flex items-center gap-2">
                     <BarChart3 className="w-4 h-4 text-[#CC0000]" />
-                    <span>PHÂN BỔ THEO CỰ LY CHẠY</span>
+                    <span>SỐ LƯỢNG ĐÃ ĐĂNG KÝ</span>
                   </div>
                   <span className="font-mono-tech text-[10px] text-neutral-500 uppercase">TỔNG {totalRegisteredRunners} VĐV</span>
                 </div>
@@ -392,12 +392,12 @@ export const GroupSettingsBox: React.FC<GroupSettingsBoxProps> = ({ setting, que
 
           </div>
 
-          {/* Section 3: PHÂN BỔ THEO CỰ LY CHẠY (NẰM TRONG BOX CÀI ĐẶT NHÓM) */}
+          {/* Section 3: SỐ LƯỢNG ĐÃ ĐĂNG KÝ (NẰM TRONG BOX CÀI ĐẶT NHÓM) */}
           <div className="border border-[#1A1A1A] bg-white p-5 shadow-[3px_3px_0px_0px_#1A1A1A]">
             <div className="flex items-center justify-between border-b border-[#1A1A1A] pb-3 mb-4">
               <div className="font-mono-tech text-xs uppercase font-bold text-[#1A1A1A] flex items-center gap-2">
                 <BarChart3 className="w-4 h-4 text-[#CC0000]" />
-                <span>PHÂN BỔ THEO CỰ LY CHẠY</span>
+                <span>SỐ LƯỢNG ĐÃ ĐĂNG KÝ</span>
               </div>
               <span className="font-mono-tech text-[10px] text-neutral-500 uppercase font-bold">
                 TỔNG {totalRegisteredRunners} VĐV THAM GIA
