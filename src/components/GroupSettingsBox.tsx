@@ -1,5 +1,5 @@
-import React from 'react';
-import { GroupSetting, SearchStats } from '../types';
+import React, { useState, useMemo } from 'react';
+import { GroupSetting, SearchStats, RunnerMember } from '../types';
 import { 
   Sliders, 
   Calendar, 
@@ -17,31 +17,83 @@ import {
   Tag, 
   Hash, 
   Trophy, 
-  BarChart3 
+  BarChart3,
+  Filter,
+  RotateCcw
 } from 'lucide-react';
 
 interface GroupSettingsBoxProps {
   setting: GroupSetting | null | undefined;
   query: string;
   stats?: SearchStats | null;
+  members?: RunnerMember[];
 }
 
-export const GroupSettingsBox: React.FC<GroupSettingsBoxProps> = ({ setting, query, stats }) => {
+export const GroupSettingsBox: React.FC<GroupSettingsBoxProps> = ({ setting, query, stats, members }) => {
+  // Local Filter Controls for SỐ LƯỢNG ĐÃ ĐĂNG KÝ
+  const [filterGender, setFilterGender] = useState<string>('ALL');
+  const [filterStatus, setFilterStatus] = useState<string>('ALL');
+
   const formatVND = (amount: number) => {
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
   };
 
-  // Calculate Distance breakdown entries sorted by distance number from stats
-  const distanceEntries = React.useMemo(() => {
+  // Extract distinct statuses from members
+  const distinctStatuses = useMemo(() => {
+    if (!members) return [];
+    const set = new Set<string>();
+    members.forEach(m => {
+      if (m.status && m.status.trim()) set.add(m.status.trim());
+    });
+    return Array.from(set).sort();
+  }, [members]);
+
+  // Filtered members based on selected gender & status
+  const filteredMembers = useMemo(() => {
+    if (!members || members.length === 0) return [];
+    return members.filter(m => {
+      // Gender filter
+      if (filterGender !== 'ALL') {
+        const gUpper = (m.gender || '').toUpperCase();
+        if (filterGender === 'M' && !(gUpper === 'M' || gUpper === 'NAM' || gUpper === 'MALE')) return false;
+        if (filterGender === 'F' && !(gUpper === 'F' || gUpper === 'NỮ' || gUpper === 'FEMALE')) return false;
+      }
+      // Status filter
+      if (filterStatus !== 'ALL') {
+        if ((m.status || '').trim().toLowerCase() !== filterStatus.toLowerCase()) {
+          return false;
+        }
+      }
+      return true;
+    });
+  }, [members, filterGender, filterStatus]);
+
+  // Calculate Distance breakdown entries dynamically
+  const distanceEntries = useMemo(() => {
+    if (members && members.length > 0) {
+      const distMap: { [key: string]: number } = {};
+      filteredMembers.forEach(m => {
+        const d = m.distance ? m.distance.trim() : 'KHÁC';
+        distMap[d] = (distMap[d] || 0) + 1;
+      });
+      return Object.entries(distMap).sort((a, b) => {
+        const numA = parseInt(a[0]) || 999;
+        const numB = parseInt(b[0]) || 999;
+        return numA - numB;
+      });
+    }
+
     if (!stats?.distances) return [];
     return Object.entries(stats.distances).sort((a, b) => {
-      const numA = parseInt(a[0]) || 0;
-      const numB = parseInt(b[0]) || 0;
+      const numA = parseInt(a[0]) || 999;
+      const numB = parseInt(b[0]) || 999;
       return numA - numB;
     });
-  }, [stats]);
+  }, [members, filteredMembers, stats]);
 
-  const totalRegisteredRunners = stats?.totalMembersFound || setting?.totalRegSuccess || 0;
+  const totalRegisteredRunners = stats?.totalMembersFound || members?.length || setting?.totalRegSuccess || 0;
+  const currentDisplayCount = members && members.length > 0 ? filteredMembers.length : totalRegisteredRunners;
+  const isFiltered = filterGender !== 'ALL' || filterStatus !== 'ALL';
 
   if (!setting) {
     return (
@@ -63,40 +115,98 @@ export const GroupSettingsBox: React.FC<GroupSettingsBoxProps> = ({ setting, que
             </div>
 
             {/* Số lượng đã đăng ký theo cự ly nếu có dữ liệu từ VĐV */}
-            {distanceEntries.length > 0 && (
+            {(distanceEntries.length > 0 || isFiltered) && (
               <div className="border border-[#1A1A1A] bg-white p-5 shadow-[3px_3px_0px_0px_#1A1A1A]">
-                <div className="flex items-center justify-between border-b border-[#1A1A1A] pb-3 mb-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#1A1A1A] pb-3 mb-4 gap-2">
                   <div className="font-mono-tech text-xs uppercase font-bold text-[#1A1A1A] flex items-center gap-2">
                     <BarChart3 className="w-4 h-4 text-[#CC0000]" />
                     <span>SỐ LƯỢNG ĐÃ ĐĂNG KÝ</span>
                   </div>
-                  <span className="font-mono-tech text-[10px] text-neutral-500 uppercase">TỔNG {totalRegisteredRunners} VĐV</span>
+                  <span className="font-mono-tech text-[10px] text-neutral-600 uppercase font-bold">
+                    {isFiltered ? (
+                      <>HIỂN THỊ <span className="text-[#CC0000]">{currentDisplayCount}</span> / TỔNG {totalRegisteredRunners} VĐV</>
+                    ) : (
+                      <>TỔNG {totalRegisteredRunners} VĐV</>
+                    )}
+                  </span>
+                </div>
+
+                {/* Bộ lọc Giới tính & Trạng thái */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 bg-[#F4F1EA] border border-[#1A1A1A] p-3 mb-4 font-mono-tech text-xs">
+                  <div className="flex items-center gap-2 bg-white border border-[#1A1A1A] px-2.5 py-1.5 min-w-0">
+                    <Filter className="w-3.5 h-3.5 text-neutral-500 shrink-0" />
+                    <span className="text-[11px] font-bold text-neutral-700 uppercase whitespace-nowrap shrink-0">GIỚI TÍNH:</span>
+                    <select
+                      value={filterGender}
+                      onChange={(e) => setFilterGender(e.target.value)}
+                      className="w-full bg-transparent font-bold outline-none cursor-pointer text-xs min-w-0 truncate"
+                    >
+                      <option value="ALL">Tất cả giới tính</option>
+                      <option value="M">Nam (Male)</option>
+                      <option value="F">Nữ (Female)</option>
+                    </select>
+                  </div>
+
+                  <div className="flex items-center gap-2 bg-white border border-[#1A1A1A] px-2.5 py-1.5 min-w-0">
+                    <span className="text-[11px] font-bold text-neutral-700 uppercase whitespace-nowrap shrink-0">TRẠNG THÁI:</span>
+                    <select
+                      value={filterStatus}
+                      onChange={(e) => setFilterStatus(e.target.value)}
+                      className="w-full bg-transparent font-bold outline-none cursor-pointer text-xs min-w-0 truncate"
+                    >
+                      <option value="ALL">Tất cả trạng thái</option>
+                      {distinctStatuses.map(st => (
+                        <option key={st} value={st}>{st}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="flex items-center justify-between sm:justify-end gap-2">
+                    {isFiltered && (
+                      <button
+                        onClick={() => {
+                          setFilterGender('ALL');
+                          setFilterStatus('ALL');
+                        }}
+                        className="px-3 py-1.5 bg-[#1A1A1A] text-[#F4F1EA] hover:bg-neutral-800 text-[11px] font-bold uppercase flex items-center gap-1.5 shadow-[2px_2px_0px_0px_#CC0000] transition-all"
+                      >
+                        <RotateCcw className="w-3 h-3" />
+                        <span>BỎ LỌC</span>
+                      </button>
+                    )}
+                  </div>
                 </div>
 
                 <div className="space-y-4">
-                  {distanceEntries.map(([dist, count]) => {
-                    const runnerCount = Number(count) || 0;
-                    const total = Number(totalRegisteredRunners) || 1;
-                    const percent = Math.round((runnerCount / total) * 100);
-                    return (
-                      <div key={dist} className="space-y-1.5 font-mono-tech text-xs">
-                        <div className="flex justify-between items-center text-[#1A1A1A]">
-                          <span className="font-bold text-sm">
-                            CỰ LY {dist.toUpperCase() === 'KHÁC' ? 'KHÁC' : `${dist} KM`}
-                          </span>
-                          <span className="bg-[#1A1A1A] text-[#F4F1EA] px-2.5 py-0.5 font-bold">
-                            {count} VĐV ({percent}%)
-                          </span>
+                  {distanceEntries.length === 0 ? (
+                    <p className="font-mono-tech text-xs text-neutral-500 py-3 text-center italic bg-[#F4F1EA] border border-neutral-300">
+                      Không có VĐV nào phù hợp với bộ lọc Giới tính / Trạng thái đã chọn.
+                    </p>
+                  ) : (
+                    distanceEntries.map(([dist, count]) => {
+                      const runnerCount = Number(count) || 0;
+                      const total = Number(currentDisplayCount) || 1;
+                      const percent = Math.round((runnerCount / total) * 100);
+                      return (
+                        <div key={dist} className="space-y-1.5 font-mono-tech text-xs">
+                          <div className="flex justify-between items-center text-[#1A1A1A]">
+                            <span className="font-bold text-sm">
+                              CỰ LY {dist.toUpperCase() === 'KHÁC' ? 'KHÁC' : `${dist} KM`}
+                            </span>
+                            <span className="bg-[#1A1A1A] text-[#F4F1EA] px-2.5 py-0.5 font-bold">
+                              {count} VĐV ({percent}%)
+                            </span>
+                          </div>
+                          <div className="w-full h-4 bg-neutral-100 border border-[#1A1A1A] p-0.5">
+                            <div 
+                              className="h-full bg-[#CC0000] transition-all duration-500" 
+                              style={{ width: `${percent}%` }}
+                            ></div>
+                          </div>
                         </div>
-                        <div className="w-full h-4 bg-neutral-100 border border-[#1A1A1A] p-0.5">
-                          <div 
-                            className="h-full bg-[#CC0000] transition-all duration-500" 
-                            style={{ width: `${percent}%` }}
-                          ></div>
-                        </div>
-                      </div>
-                    );
-                  })}
+                      );
+                    })
+                  )}
                 </div>
               </div>
             )}
@@ -394,25 +504,75 @@ export const GroupSettingsBox: React.FC<GroupSettingsBoxProps> = ({ setting, que
 
           {/* Section 3: SỐ LƯỢNG ĐÃ ĐĂNG KÝ (NẰM TRONG BOX CÀI ĐẶT NHÓM) */}
           <div className="border border-[#1A1A1A] bg-white p-5 shadow-[3px_3px_0px_0px_#1A1A1A]">
-            <div className="flex items-center justify-between border-b border-[#1A1A1A] pb-3 mb-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#1A1A1A] pb-3 mb-4 gap-2">
               <div className="font-mono-tech text-xs uppercase font-bold text-[#1A1A1A] flex items-center gap-2">
                 <BarChart3 className="w-4 h-4 text-[#CC0000]" />
                 <span>SỐ LƯỢNG ĐÃ ĐĂNG KÝ</span>
               </div>
-              <span className="font-mono-tech text-[10px] text-neutral-500 uppercase font-bold">
-                TỔNG {totalRegisteredRunners} VĐV THAM GIA
+              <span className="font-mono-tech text-[10px] text-neutral-600 uppercase font-bold">
+                {isFiltered ? (
+                  <>HIỂN THỊ <span className="text-[#CC0000]">{currentDisplayCount}</span> / TỔNG {totalRegisteredRunners} VĐV</>
+                ) : (
+                  <>TỔNG {totalRegisteredRunners} VĐV THAM GIA</>
+                )}
               </span>
+            </div>
+
+            {/* Bộ lọc Giới tính & Trạng thái */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 bg-[#F4F1EA] border border-[#1A1A1A] p-3 mb-4 font-mono-tech text-xs">
+              <div className="flex items-center gap-2 bg-white border border-[#1A1A1A] px-2.5 py-1.5 min-w-0">
+                <Filter className="w-3.5 h-3.5 text-neutral-500 shrink-0" />
+                <span className="text-[11px] font-bold text-neutral-700 uppercase whitespace-nowrap shrink-0">GIỚI TÍNH:</span>
+                <select
+                  value={filterGender}
+                  onChange={(e) => setFilterGender(e.target.value)}
+                  className="w-full bg-transparent font-bold outline-none cursor-pointer text-xs min-w-0 truncate"
+                >
+                  <option value="ALL">Tất cả giới tính</option>
+                  <option value="M">Nam (Male)</option>
+                  <option value="F">Nữ (Female)</option>
+                </select>
+              </div>
+
+              <div className="flex items-center gap-2 bg-white border border-[#1A1A1A] px-2.5 py-1.5 min-w-0">
+                <span className="text-[11px] font-bold text-neutral-700 uppercase whitespace-nowrap shrink-0">TRẠNG THÁI:</span>
+                <select
+                  value={filterStatus}
+                  onChange={(e) => setFilterStatus(e.target.value)}
+                  className="w-full bg-transparent font-bold outline-none cursor-pointer text-xs min-w-0 truncate"
+                >
+                  <option value="ALL">Tất cả trạng thái</option>
+                  {distinctStatuses.map(st => (
+                    <option key={st} value={st}>{st}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex items-center justify-between sm:justify-end gap-2">
+                {isFiltered && (
+                  <button
+                    onClick={() => {
+                      setFilterGender('ALL');
+                      setFilterStatus('ALL');
+                    }}
+                    className="px-3 py-1.5 bg-[#1A1A1A] text-[#F4F1EA] hover:bg-neutral-800 text-[11px] font-bold uppercase flex items-center gap-1.5 shadow-[2px_2px_0px_0px_#CC0000] transition-all"
+                  >
+                    <RotateCcw className="w-3 h-3" />
+                    <span>BỎ LỌC</span>
+                  </button>
+                )}
+              </div>
             </div>
 
             <div className="space-y-4">
               {distanceEntries.length === 0 ? (
-                <p className="font-mono-tech text-xs text-neutral-500 py-2">
-                  Chưa có dữ liệu phân bổ cự ly chạy từ danh sách VĐV.
+                <p className="font-mono-tech text-xs text-neutral-500 py-3 text-center italic bg-[#F4F1EA] border border-neutral-300">
+                  Không có VĐV nào phù hợp với bộ lọc Giới tính / Trạng thái đã chọn.
                 </p>
               ) : (
                 distanceEntries.map(([dist, count]) => {
                   const runnerCount = Number(count) || 0;
-                  const total = Number(totalRegisteredRunners) || 1;
+                  const total = Number(currentDisplayCount) || 1;
                   const percent = Math.round((runnerCount / total) * 100);
                   return (
                     <div key={dist} className="space-y-1.5 font-mono-tech text-xs">

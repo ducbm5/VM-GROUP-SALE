@@ -209,6 +209,7 @@ export default function App() {
                   setting={searchResponse.groupSetting}
                   query={currentQuery}
                   stats={searchResponse.stats}
+                  members={allMatchedMembers}
                 />
 
                 {/* 2. BẢNG LISTING THÀNH VIÊN (MEMBER LISTING TABLE) */}

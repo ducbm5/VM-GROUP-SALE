@@ -16,6 +16,7 @@ interface RunnerMember {
   phNo: string;
   distance: string;
   gender: string;
+  status?: string;
   txnAmount: number;
   dateCreate: string;
   rawRowIndex: number;
@@ -135,6 +136,7 @@ async function fetchAndParseTSV(): Promise<RunnerMember[]> {
     const phNoIdx = findHeaderIdx(['PH_NO', 'PHONE', 'SĐT', 'SỐ ĐIỆN THOẠI', 'TEL', 'SDT']);
     const distanceIdx = findHeaderIdx(['DISTANCE', 'CỰ LY', 'KHOẢNG CÁCH', 'KM']);
     const genderIdx = findHeaderIdx(['GENDER', 'GIỚI TÍNH', 'SEX']);
+    const statusIdx = findHeaderIdx(['STATUS', 'TRẠNG THÁI', 'TRANGTHAI', 'TÌNH TRẠNG', 'STATE']);
     const txnAmountIdx = findHeaderIdx(['TXNAMOUNT', 'AMOUNT', 'TIỀN', 'LỆ PHÍ', 'SỐ TIỀN', 'FEE']);
     const dateCreateIdx = findHeaderIdx(['DATE_CREATE', 'DATE', 'THỜI GIAN', 'NGÀY TẠO', 'CREATED']);
 
@@ -167,6 +169,7 @@ async function fetchAndParseTSV(): Promise<RunnerMember[]> {
         phNo: getVal(phNoIdx, 6),
         distance: getVal(distanceIdx, 7),
         gender: getVal(genderIdx, 8),
+        status: getVal(statusIdx, -1),
         txnAmount: parseMoney(getVal(txnAmountIdx, 9)),
         dateCreate: getVal(dateCreateIdx, 10),
         rawRowIndex: i

@@ -9,6 +9,7 @@ export interface RunnerMember {
   phNo: string;
   distance: string;
   gender: string;
+  status?: string;
   txnAmount: number;
   dateCreate: string;
   rawRowIndex: number;
